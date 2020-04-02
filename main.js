@@ -1,35 +1,24 @@
 // Эта функция по идее должна быть импортирована,
 // но упрощено и нужно её простейшим образом реализовать
-async function serverApiRequest(a) {
+const serverApiRequest = async (queryString) => {
   /*simulate request*/
   const url = "//t.syshub.ru"
   try {
-    const res = await fetch(url + a);
+    const res = await fetch(url + queryString);
     return await res.json()
   } catch (err) {
-    console.log(
-      "There has been a problem with your fetch operation",
-      err.message
-    )
+    return err.message
   }
 };
 
 // Можно выполнить по аналогии с serverApiRequest(), а можно лучше, см. подсказку ниже
-async function sendAnalytics(a, b) {
+const sendAnalytics = async (queryString, data) => {
   /*sendBeacon maybe*/
   const url = "//t.syshub.ru"
   try {
-    const response = await fetch(url + a, {
+    const response = await fetch(url + queryString, {
       method: 'POST',
-      mode: 'cors',
-      cache: 'no-cache',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      redirect: 'follow',
-      referrerPolicy: 'no-referrer',
-      body:  {"data":[b]}
+      body: { "data": [data] }
     });
     const content = await response.json();
     return content
@@ -49,7 +38,7 @@ async function sendAnalytics(a, b) {
 */
 const requestData = ({ id, param }) => {
   // should return [null, {v: 1}, {v: 4}, null] or Error (may return array (null | {v: number})[])
-  var array = serverApiRequest("/query/data/" + id + "/param/" + param);
+  const array = serverApiRequest("/query/data/" + id + "/param/" + param);
 
   // after complete request if *not* Error call
   sendAnalytics("/requestDone", {
@@ -59,7 +48,7 @@ const requestData = ({ id, param }) => {
   });
 
   // магия, описать
-  return array; // return [1, 4]
+  return array2; // return [1, 4]
 };
 
 // app proto
@@ -73,7 +62,7 @@ const requestData = ({ id, param }) => {
 
   log(await requestData({ id: 1, param: "any" }));
   log(await requestData({ id: 4, param: "string" }));
-  log(await requestData({ id: 4, param: "any" }));
+  log(await requestData({ id: 4, param: 404 }));
 })();
 // END DO NOT EDIT app
 
