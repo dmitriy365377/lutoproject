@@ -15,18 +15,15 @@ const serverApiRequest = async (queryString) => {
 const sendAnalytics = async (queryString, data) => {
   /*sendBeacon maybe*/
   const url = "//t.syshub.ru"
+
+  // Проблемное место для отправки данных на сервер: CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. 
   try {
     const response = await fetch(url + queryString, {
       method: 'POST',
       body: { "data": [data] }
     });
-    const content = await response.json();
-    return content
   } catch (err) {
-    alert(
-      "There has been a problem with your fetch operation",
-      err.message
-    )
+    return err.message
   }
 };
 
@@ -36,19 +33,26 @@ const sendAnalytics = async (queryString, data) => {
     3 Подсветить места, где ТЗ недостаточно
     4 Подсветить места, вероятно проблемные
 */
-const requestData = ({ id, param }) => {
+const requestData = async ({ id, param }) => {
   // should return [null, {v: 1}, {v: 4}, null] or Error (may return array (null | {v: number})[])
-  const array = serverApiRequest("/query/data/" + id + "/param/" + param);
+  try {
+    const requestData = await serverApiRequest("/query/data/" + id + "/param/" + param);
 
-  // after complete request if *not* Error call
-  sendAnalytics("/requestDone", {
-    type: "data",
-    id: id,
-    param: param
-  });
+    // after complete request if *not* Error call
+    sendAnalytics("/requestDone", {
+      type: "data",
+      id: id,
+      param: param
+    });
 
-  // магия, описать
-  return array2; // return [1, 4]
+    // Проблемное место для фильтрации чисел если придет не массив  
+    // магия, описать 
+    const filterData = requestData.filter(item => item).map(obj => obj.v)
+    return filterData
+  }
+  catch (err) {
+    return err.message
+  }
 };
 
 // app proto
